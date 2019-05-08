@@ -16,5 +16,64 @@
 
 		;		Your code here
 
-floats	DCD		0xa0bcff0d, 0x13c0adea
-tns	    FILL	16
+floats	     DCD	0xa0bcff0d, 0x13c0adea
+tns	          FILL	16
+mask 		DCD 	&80000000
+Iexpo       	DCD 	&7F800000           
+Ifrac		DCD 	&007FFFFF
+Texpo       	DCD 	&000001FF           
+Tfrac		DCD  &7FFFFE00
+			ADR  R0, floats
+			MOV  R1, #0
+			LDR  R3, [R0, R1]  
+			MOV  R1, #4
+			LDR  R10, [R0, R1]  
+			MOV  R1, #0	
+			B    TNScon
+			B    IEEEcon		
+
+
+
+TNScon
+			ADR R0,mask
+			LDR R1, [R0, R1]
+			ADR R0, Tfrac		
+			LDR R3, [R0, R1]
+			ADR R0, Texpo		
+			LDR R5, [R0, R1]	
+			MOV R0, #0	
+
+			AND R2,R10,R1   	  
+			AND R4,R10,R2  		
+			AND R6,R10,R3		
+			MOV R6,R6, LSR #8			
+			AND R6,R10,R5   	 
+			SUB R6,R6,#129		
+			ADD R6,R6,LSL #23	
+			CMP R6,R10
+			BEQ Done
+
+IEEEcon		
+			ADR R0,mask
+			LDR R1,[R0, R1]	
+			AND R2,R0,R1	
+			ADR R0, Iexpo		 
+			LDR R3,[R0, R1]		
+			AND R4,R0,R3		
+			MOV R4,R4,LSR #23	
+			ADD R4,R4,#129	
+			ADR R0, Ifrac		
+			LDR R5,[R0, R1]
+			AND R6,R0,R5
+			ADD R7,R6, LSL #8		
+			ORR R0,R7,R4
+			CMP R0,R10
+			BEQ done		 
+
+
+
+Done			ADR R0, tns
+			STR R, [R0, R1]
+		     MOV R1, #16
+			STR R10, [R0, R1]
+			END
